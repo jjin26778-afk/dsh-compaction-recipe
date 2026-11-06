@@ -1,0 +1,29 @@
+# Example overlay for DeepSeek Harness (DSH).
+# Merge the compaction group into ~/.dsh/cordis.patch.yml
+# or into a profile overlay such as ~/.dsh/profiles/desktop/cordis.patch.yml.
+# Restart DeepSeek Harness after changing the file.
+#
+# This is a recipe, not the compaction engine.
+# The engine is DeepSeek's plugin: @deepseek-ai/dsh-compaction-basic
+
+- id: compaction
+  name: cordis:group
+  group: true
+  isolate:
+    compaction: true
+    # Reserve the pruner slot so a parent/default pruner cannot leak in.
+    # Do not load @deepseek-ai/dsh-compaction-tool-result-pruner in this
+    # group: if pruning alone drops usage back under the threshold,
+    # compaction-basic skips the LLM summary (for example 20% -> 18%).
+    toolResultPruner: true
+  config:
+    - id: compaction-basic
+      name: "@deepseek-ai/dsh-compaction-basic"
+      config:
+        # Start heavy compaction at 20% of the routed context window.
+        thresholdRatio: 0.20
+        # Keep about 5% of the window as recent verbatim context.
+        # Mutually exclusive with retainTokens.
+        retainRatio: 0.05
+    - id: command-compact
+      name: "@deepseek-ai/dsh-command-compact"
